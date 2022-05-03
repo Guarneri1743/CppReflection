@@ -7,7 +7,7 @@ end
 
 function SetupSlotion()
    location(solution_dir)
-   solution "TinyReflection"
+   solution "CppReflection"
       configurations {
          "Debug", 
          "Release"
