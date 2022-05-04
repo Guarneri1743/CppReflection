@@ -26,13 +26,13 @@ namespace Reflection
 	template<>
 	Type const* GetTypeImpl(Tag<Foo>) noexcept
 	{
-		static TypeStorage<Foo, 4, 2> typeStorage;
+		static TypeStorage<Foo, 4, 1> typeStorage;
 		static Type field_0_Type = *GetType<float>();
-		typeStorage.fields[0] = Reflection::Field("Foo::field2", &field_0_Type, offsetof(Foo, Foo::field2), CVRQualifier::kConst | CVRQualifier::kVolatile, StorageClassSpecifier::kNone, ThreadStorageClassSpecifier::kUnSpecified, StorageDuration::kNone, AccessSpecifier::kPublic);
+		typeStorage.fields[0] = Reflection::Field("Foo::field1", &field_0_Type, offsetof(Foo, Foo::field1), CVRQualifier::kConst | CVRQualifier::kVolatile, StorageClassSpecifier::kNone, ThreadStorageClassSpecifier::kUnSpecified, StorageDuration::kNone, AccessSpecifier::kPublic);
 		static Type field_1_Type = *GetType<Bar[10]>();
-		typeStorage.fields[1] = Reflection::Field("Foo::field3", &field_1_Type, offsetof(Foo, Foo::field3), CVRQualifier::kNone, StorageClassSpecifier::kNone, ThreadStorageClassSpecifier::kUnSpecified, StorageDuration::kNone, AccessSpecifier::kPublic);
+		typeStorage.fields[1] = Reflection::Field("Foo::field2", &field_1_Type, offsetof(Foo, Foo::field2), CVRQualifier::kNone, StorageClassSpecifier::kNone, ThreadStorageClassSpecifier::kUnSpecified, StorageDuration::kNone, AccessSpecifier::kPublic);
 		static Type field_2_Type = *GetType<int>();
-		typeStorage.fields[2] = Reflection::Field("Foo::field1", &field_2_Type, 0, CVRQualifier::kConst, StorageClassSpecifier::kStatic, ThreadStorageClassSpecifier::kUnSpecified, StorageDuration::kStatic, AccessSpecifier::kPublic);
+		typeStorage.fields[2] = Reflection::Field("Foo::field3", &field_2_Type, 0, CVRQualifier::kConst, StorageClassSpecifier::kStatic, ThreadStorageClassSpecifier::kUnSpecified, StorageDuration::kStatic, AccessSpecifier::kPublic);
 		static Type field_3_Type = *GetType<float>();
 		typeStorage.fields[3] = Reflection::Field("Foo::field4", &field_3_Type, 0, CVRQualifier::kNone, StorageClassSpecifier::kStatic, ThreadStorageClassSpecifier::kCXX11ThreadLocal, StorageDuration::kThread, AccessSpecifier::kPublic);
 		static Type method_0_ret_type = *GetType<int>();
@@ -48,8 +48,6 @@ namespace Reflection
 		static Type method_0_param_4_type = *GetType <int**>();
 		method_0_parameters[4] = Reflection::Parameter("e", &method_0_param_4_type, CVRQualifier::kNone, RefDeclarator::kNone);
 		typeStorage.methods[0] = Reflection::Method("Foo::Add", &method_0_ret_type, &method_0_parameters[0], 5, AccessSpecifier::kPublic, Linkage::kExternalLinkage);
-		static Type method_1_ret_type = *GetType<void>();
-		typeStorage.methods[1] = Reflection::Method("Foo::Test", &method_1_ret_type, nullptr, 0, AccessSpecifier::kPublic, Linkage::kExternalLinkage);
 		static Type type("Foo", sizeof(Foo), TypeSpecifierType::kClass, typeStorage.fields, typeStorage.kFieldsNum, typeStorage.methods, typeStorage.kMethodsNum);
 		return &type;
 	};

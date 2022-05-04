@@ -12,49 +12,50 @@ CLASS(Foo)
 {
 public:
     FIELD()
-        static const int field1;
+        const volatile float field1;
 
     FIELD()
-        const volatile float field2;
+        Bar field2[10];
 
     FIELD()
-        Bar field3[10];
+        static const int field3;
 
     FIELD()
         static thread_local float field4;
+
 
     METHOD()
         inline int Add(int a, int const& b, int* c, int const&& d, int** e) const
     {
         return a + b;
     }
-
-    METHOD()
-        static void Test(){}
 };
 
 #ifdef _REFL_GEN_OFF_
 #include "main_gen_refl.h"
 #endif
 
-#include <vector>
-
 int main()
 {
+    // use print helper
     auto& os = std::cout;
 	GetType<Bar>()->Print(os, 0);
-    os << "\n";
-    GetType<Foo>()->Print(os, 0);
-    os << "\n";
-    GetType<Bar[10]>()->Print(os, 0);
-    os << "\n";
-    GetType<int*>()->Print(os, 0);
-    os << "\n";
-    GetType<int**>()->Print(os, 0);
-    os << "\n";
-    GetType<int&>()->Print(os, 0);
-    os << "\n";
-    GetType<int&&>()->Print(os, 0);
-    os << "\n";
+
+    std::cout << std::endl;
+
+    // access metadata
+    auto type = GetType<Foo>();
+    for (int i = 0; i < type->GetFieldsLength(); ++i)
+    {
+        auto field = type->GetField(i);
+        std::cout << "field: " << field->GetName() << std::endl;
+        std::cout << "fieldType: " << field->GetType()->GetName() << std::endl;
+        std::cout << "isConst: " << field->IsConst() << std::endl;
+        std::cout << "isVolatile: " << field->IsVolatile() << std::endl;
+        std::cout << "isPublic: " << field->IsPublic() << std::endl;
+        std::cout << "isStatic: " << field->IsStatic() << std::endl;
+        std::cout << std::endl;
+    }
+
 	return 0;
 }

@@ -1,47 +1,42 @@
 # CppReflection
 
- CppReflection is a simple C++ reflection implementation based on Clang.
+
+CppReflection is a simple C++ reflection solution based on Clang. 
+
+The purpose of this project for me is to learn the knowledge about how the common C++ reflection systems parse the metadata from source code by Clang and how to generate the reflection code. Afterwards, I will try to use this project to support generating serialization code automatically.
 
 # Features
 
-- Accessing Type/Field/Method Metadata.
+- Accessing metadata of Type, Field, Method, etc.
+- Metadata print helpers
 
-# How to generate metadata?
-
-1. Build and run clang.
-2. Annotate the Types/Fields/Methods that we are interested in.
-2. Collect the metadata of the code we previously annotated by Clang's ASTMatcher.
-3. Generate reflection code by metadata.
-
-# Example of accessing metadata
+# Getting Started
 
 - run 'setup.bat'
-- build Project 'MetaGen'
-- run Project 'Example'
-	
-    	
-Foo.h
+- open VisualStudio solution in build folder
+- Annotate the fields, methods, class and struct that we are interested in
 
 		#include "reflection.hpp"
 		
 		using namespace Reflection;
-
+	
 		STRUCT(Bar) { FIELD() int num; };
-
+	
 		CLASS(Foo)
 		{
 		public:
 		    FIELD()
-		    static const int field1;
+		    const volatile float field1;
 		
 		    FIELD()
-		    const volatile float field2;
-		
-		    FIELD()
-		    Bar field3[10];
-		
-		    FIELD()
+		    Bar field2[10];
+	
+			FIELD()
+		    static const int field3;
+	
+			FIELD()
 		    static thread_local float field4;
+		    
 		
 		    METHOD()
 		    inline int Add(int a, int const& b, int* c, int const&& d, int** e) const
@@ -49,56 +44,91 @@ Foo.h
 		        return a + b;
 		    }
 		};
-		
+			
 
-Foo.cpp
+- Build project 'MetaGen'
+
+- Access metadata by GetType<T\>()
 		
 		#include "Foo.h"
 		#ifdef _REFL_GEN_OFF_
 		#include "Foo_gen_refl.h"
 		#endif
-
+	
 		#include <iostream>
-
+	
 		using namespace Reflection;
-
+	
 		int main()
 		{
-			auto type = GetType<T>();
-	
-			std::cout << type->name << " size: " << type->size << std::endl;
-			for(int i = 0; i < type->GetFieldsLength(); ++i)
-			{
-				auto field = type->GetField(i);
-				auto fieldType = field->GetType();
-				if (field->GetType()->is_array)
-				{
-					std::cout << "  " << fieldType->name << " " << field->name << "[" << field->GetType()->array_length << "]" << "  offset: " << field->offset << std::endl;
-				}
-				else
-				{
-					std::cout << "  " << fieldType->name << " " << field->name << "  offset: " << field->offset << std::endl;
-				}
-			}
-	
-			for (int i = 0; i < type->GetMethodsLength(); ++i)
-			{
-				auto method = type->GetMethod(i);
-				std::cout << method->GetReturnType()->name << " " << method->name << "(";
-				for (int j = 0; j < method->GetParameterLength(); ++j)
-				{
-					auto parameter = method->GetParameter(j);
-					std::cout << parameter->GetType()->name << " " << parameter->name;
-					if (j < method->GetParameterLength() - 1)
-					{
-						std::cout << ", ";
-					}
-				}
-				std::cout << ");" << std::endl;
-			}
-
+			// use print helper
+			auto& os = std::cout;
+			GetType<Bar>()->Print(os, 0);
+		    
+			// access metadata
+			auto type = GetType<Foo>();
+		    for (int i = 0; i < type->GetFieldsLength(); ++i)
+		    {
+		        auto field = type->GetField(i);
+		        std::cout << "field: " << field->GetName() << std::endl;
+		        std::cout << "fieldType: " << field->GetType()->GetName() << std::endl;
+		        std::cout << "isConst: " << field->IsConst() << std::endl;
+		        std::cout << "isVolatile: " << field->IsVolatile() << std::endl;
+		        std::cout << "isPublic: " << field->IsPublic() << std::endl;
+		        std::cout << "isStatic: " << field->IsStatic() << std::endl;
+		        std::cout << std::endl;
+		    }
+			
 			return 0;
 		}
+
+- Output:
+
+		name: Bar
+		size: 4
+		type specifier type: kStruct
+		ref declarator: kNone
+		fields length:  1
+		fields:
+		  fields[0]:
+		  name: Bar::num
+		  type: int
+		  offset: int
+		  cvr qualifier: kNone
+		  storage class specifier: kNone
+		  thread storage class specifier: kUnSpecified
+		  storage duration: kNone
+		  access specifier: kPublic
+		methods length:  0
+		
+		field: Foo::field1
+		fieldType: float
+		isConst: 1
+		isVolatile: 1
+		isPublic: 1
+		isStatic: 0
+		
+		field: Foo::field2
+		fieldType: Bar[10]
+		isConst: 0
+		isVolatile: 0
+		isPublic: 1
+		isStatic: 0
+		
+		field: Foo::field3
+		fieldType: int
+		isConst: 1
+		isVolatile: 0
+		isPublic: 1
+		isStatic: 1
+		
+		field: Foo::field4
+		fieldType: float
+		isConst: 0
+		isVolatile: 0
+		isPublic: 1
+		isStatic: 1
+
 
 # References:
 
