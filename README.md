@@ -131,13 +131,13 @@ The purpose of this project for me is to learn the knowledge about how the commo
 
 # References:
 
-[Building a C++ Reflection System Using LLVM and Clang](https://arvid.io/content/static/Reflection2.pdf)
+- [Building a C++ Reflection System Using LLVM and Clang](https://arvid.io/content/static/Reflection2.pdf)
 
-[metareflect](https://github.com/leandros/metareflect)
+- [metareflect](https://github.com/leandros/metareflect)
 
-[Getting Started: Building and Running Clang](https://clang.llvm.org/get_started.html)
+- [Getting Started: Building and Running Clang](https://clang.llvm.org/get_started.html)
 
-[LibASTMatchersTutorial](https://clang.llvm.org/docs/LibASTMatchersTutorial.html)
+- [LibASTMatchersTutorial](https://clang.llvm.org/docs/LibASTMatchersTutorial.html)
 
 
 
