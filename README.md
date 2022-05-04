@@ -3,7 +3,7 @@
 
 CppReflection is a simple C++ reflection solution based on Clang. 
 
-# Indroduction
+# Introduction
 
 The purpose of this project is to help beginners like me to get a better picture of how the common C++ reflection system works. The most important part of this project is parsing AST and generating reflection code, source can be found at 'meta_gen.cpp'. 'reflection.hpp' is used to build the type descriptors, thus metadata can be accessed at runtime.
 
