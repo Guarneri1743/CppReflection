@@ -3,12 +3,9 @@
 
 CppReflection is a simple C++ reflection solution based on Clang. 
 
-The purpose of this project for me is to learn the knowledge about how the common C++ reflection systems parse the metadata from source code by Clang and how to generate the reflection code. Afterwards, I will try to use this project to support generating serialization code automatically.
+# Indroduction
 
-# Features
-
-- Accessing metadata of Type, Field, Method, etc.
-- Metadata print helpers
+The purpose of this project is to help beginners like me to get a better picture of how the common C++ reflection system works. The most important part of this project is parsing AST and generating reflection code, source can be found at 'meta_gen.cpp'. 'reflection.hpp' is used to build the type descriptors, thus metadata can be accessed at runtime.
 
 # Getting Started
 
@@ -127,6 +124,10 @@ The purpose of this project for me is to learn the knowledge about how the commo
 		isVolatile: 0
 		isPublic: 1
 		isStatic: 1
+
+# Future works
+
+- Automatic serialization code generation will be added as an example not long afterwards.
 
 
 # References:
