@@ -1,4 +1,5 @@
 #pragma once
+#include <ostream>
 #include <memory>
 #include <type_traits>
 
@@ -14,11 +15,11 @@
 #define METHOD(...)
 #endif
 
-#define MEMCPY(src, dst, size) std::memcpy(src, dst, size)
+#define REFL_MEMCPY(src, dst, size) std::memcpy(src, dst, size)
 
 namespace Reflection
 {
-	char kUnknownName[] = "Unknown";
+	constexpr char kDefaultName[] = "Unknown";
 
 	typedef size_t Offset;
 	typedef size_t Size;
@@ -70,10 +71,10 @@ namespace Reflection
 
 	enum class ThreadStorageClassSpecifier : Byte
 	{
-		kUnSpecified = 0x0,
-		kGNUThread = 0x1,
-		kCXX11ThreadLocal = 0x2,
-		kC11ThreadLocal = 0x4
+		kUnSpecified,
+		kGNUThread,
+		kCXX11ThreadLocal,
+		kC11ThreadLocal
 	};
 
 	enum class StorageDuration : Byte
@@ -168,47 +169,253 @@ namespace Reflection
 	}
 
 	template<>
-	struct support_bitwise_enum<TypeSpecifierType> : std::true_type {};
-
-	template<>
 	struct support_bitwise_enum<CVRQualifier> : std::true_type {};
 
-	template<>
-	struct support_bitwise_enum<RefDeclarator> : std::true_type {};
-
-	template<>
-	struct support_bitwise_enum<StorageClassSpecifier> : std::true_type {};
-
-	template<>
-	struct support_bitwise_enum<ThreadStorageClassSpecifier> : std::true_type {};
-
-	template<>
-	struct support_bitwise_enum<StorageDuration> : std::true_type {};
-
-	template<>
-	struct support_bitwise_enum<AccessSpecifier> : std::true_type {};
-
-	struct Base
+	std::ostream& operator<<(std::ostream& stream, TypeSpecifierType const& value)
 	{
+		switch (value)
+		{
+		case TypeSpecifierType::kBuiltin:
+			stream << "kBuiltin";
+			break;
+		case TypeSpecifierType::kClass:
+			stream << "kClass";
+			break;
+		case TypeSpecifierType::kEnum:
+			stream << "kEnum";
+			break;
+		case TypeSpecifierType::kStruct:
+			stream << "kStruct";
+			break;
+		case TypeSpecifierType::kUnion:
+			stream << "kUnion";
+			break;
+		}
+		return stream;
+	}
+
+	std::ostream& operator<<(std::ostream& stream, CVRQualifier const& value)
+	{
+		if (value == CVRQualifier::kNone)
+		{
+			stream << "kNone";
+			return stream;
+		}
+
+		bool appendSeperator = false;
+
+		if ((value & CVRQualifier::kConst) != CVRQualifier::kNone)
+		{
+			stream << "kConst";
+			appendSeperator = true;
+		}
+
+		if ((value & CVRQualifier::kVolatile) != CVRQualifier::kNone)
+		{
+			if (appendSeperator)
+			{
+				stream << " | ";
+			}
+
+			stream << "kVolatile";
+			appendSeperator = true;
+		}
+
+		if ((value & CVRQualifier::kRestrict) != CVRQualifier::kNone)
+		{
+			if (appendSeperator)
+			{
+				stream << " | ";
+			}
+
+			stream << "kRestrict";
+		}
+
+		return stream;
+	}
+
+	std::ostream& operator<<(std::ostream& stream, RefDeclarator const& value)
+	{
+		switch (value)
+		{
+		case RefDeclarator::kNone:
+			stream << "kNone";
+			break;
+		case RefDeclarator::kLValueReference:
+			stream << "kLValueReference";
+			break;
+		case RefDeclarator::kRValueReference:
+			stream << "kRValueReference";
+			break;
+		}
+		return stream;
+	}
+
+	std::ostream& operator<<(std::ostream& stream, StorageClassSpecifier const& value)
+	{
+		switch (value)
+		{
+		case StorageClassSpecifier::kNone:
+			stream << "kNone";
+			break;
+		case StorageClassSpecifier::kExtern:
+			stream << "kExtern";
+			break;
+		case StorageClassSpecifier::kStatic:
+			stream << "kStatic";
+			break;
+		case StorageClassSpecifier::kPrivateExtern:
+			stream << "kPrivateExtern";
+			break;
+		case StorageClassSpecifier::kAuto:
+			stream << "kAuto";
+			break;
+		case StorageClassSpecifier::kRegister:
+			stream << "kRegister";
+			break;
+		}
+		return stream;
+	}
+
+	std::ostream& operator<<(std::ostream& stream, ThreadStorageClassSpecifier const& value)
+	{
+		switch (value)
+		{
+		case ThreadStorageClassSpecifier::kC11ThreadLocal:
+			stream << "kC11ThreadLocal";
+			break;
+		case ThreadStorageClassSpecifier::kCXX11ThreadLocal:
+			stream << "kCXX11ThreadLocal";
+			break;
+		case ThreadStorageClassSpecifier::kGNUThread:
+			stream << "kGNUThread";
+			break;
+		case ThreadStorageClassSpecifier::kUnSpecified:
+			stream << "kUnSpecified";
+			break;
+		}
+		return stream;
+	}
+	
+	std::ostream& operator<<(std::ostream& stream, StorageDuration const& value)
+	{
+		switch (value)
+		{
+		case StorageDuration::kNone:
+			stream << "kNone";
+			break;
+		case StorageDuration::kFullExpression:
+			stream << "kFullExpression";
+			break;
+		case StorageDuration::kAuto:
+			stream << "kAuto";
+			break;
+		case StorageDuration::kThread:
+			stream << "kThread";
+			break;
+		case StorageDuration::kStatic:
+			stream << "kStatic";
+			break;
+		case StorageDuration::kDynamic:
+			stream << "kDynamic";
+			break;
+		}
+		return stream;
+	}
+
+	std::ostream& operator<<(std::ostream& stream, AccessSpecifier const& value)
+	{
+		switch (value)
+		{
+		case AccessSpecifier::kNone:
+			stream << "kNone";
+			break;
+		case AccessSpecifier::kPrivate:
+			stream << "kPrivate";
+			break;
+		case AccessSpecifier::kProtected:
+			stream << "kProtected";
+			break;
+		case AccessSpecifier::kPublic:
+			stream << "kPublic";
+			break;
+		}
+		return stream;
+	}
+	
+	std::ostream& operator<<(std::ostream& stream, Linkage const& value)
+	{
+		switch (value)
+		{
+		case Linkage::kNoLinkage:
+			stream << "kNoLinkage";
+			break;
+		case Linkage::kInternalLinkage:
+			stream << "kInternalLinkage";
+			break;
+		case Linkage::kUniqueExternalLinkage:
+			stream << "kUniqueExternalLinkage";
+			break;
+		case Linkage::kVisibleNoLinkage:
+			stream << "kVisibleNoLinkage";
+			break;
+		case Linkage::kModuleInternalLinkage:
+			stream << "kModuleInternalLinkage";
+			break;
+		case Linkage::kModuleLinkage:
+			stream << "kModuleLinkage";
+			break;
+		case Linkage::kExternalLinkage:
+			stream << "kExternalLinkage";
+			break;
+		}
+		return stream;
+	}
+
+	class Base
+	{
+	protected:
 		char const* name;
-		Base() : name(kUnknownName) {}
-		Base(const char* _name) : name(_name) {}
+
+	public:
+		constexpr Base() : name(kDefaultName) {}
+		constexpr Base(const char* _name) : name(_name) {}
+		char const* GetName() const { return this->name; }
+		virtual void Print(std::ostream& os, int indent) const;
 	};
 
-	struct Parameter : public Base
+	class Parameter: public Base
 	{
+	private:
 		Type const* type;
 		CVRQualifier cvr_qualifier;
 		RefDeclarator ref_declarator;
 
-		Type const* GetType() const noexcept
-		{
-			return type;
-		}
+	public:
+		constexpr Parameter() : Base(kDefaultName), type(nullptr), cvr_qualifier(CVRQualifier::kNone), ref_declarator(RefDeclarator::kNone) {}
+		constexpr Parameter(
+			const char* _name, 
+			Type const* _type,
+			CVRQualifier _cvr_qualifier,
+			RefDeclarator _ref_declarator
+		) : 
+			Base(_name), 
+			type(_type), 
+			cvr_qualifier(_cvr_qualifier), 
+			ref_declarator(_ref_declarator) 
+		{}
+
+		Type const* GetType() const noexcept { return type; }
+		CVRQualifier GetCVRQualifier() const noexcept { return cvr_qualifier; }
+		bool IsLValueReference() const noexcept { return ref_declarator == RefDeclarator::kLValueReference; }
+		bool IsRValueReference() const noexcept { return ref_declarator == RefDeclarator::kRValueReference; }
+		bool IsReference() const noexcept { return ref_declarator != RefDeclarator::kNone; }
+		void Print(std::ostream& os, int indent) const;
 	};
 
-	struct Field : public Base
+	class Field : public Base
 	{
+	private:
 		Type const* type;
 		Offset offset; 
 		CVRQualifier cvr_qualifier;
@@ -217,37 +424,58 @@ namespace Reflection
 		StorageDuration storage_duration;
 		AccessSpecifier access_specifier;
 
-		Type const* GetType() const noexcept
-		{
-			return type;
-		}
+	public:
+		constexpr Field() :
+			Base(kDefaultName),
+			type(nullptr),
+			offset(0),
+			cvr_qualifier(CVRQualifier::kNone),
+			storage_class_specifier(StorageClassSpecifier::kNone),
+			thread_storage_class_specifier(ThreadStorageClassSpecifier::kUnSpecified),
+			storage_duration(StorageDuration::kNone),
+			access_specifier(AccessSpecifier::kNone)
+		{}
 
-		bool IsPublic() const noexcept
-		{
-			return access_specifier == AccessSpecifier::kPublic;
-		}
+		constexpr Field(
+			const char* _name,
+			Type const* _type,
+			Offset _offset,
+			CVRQualifier _cvr_qualifier,
+			StorageClassSpecifier _storage_class_specifier,
+			ThreadStorageClassSpecifier _thread_storage_class_specifier,
+			StorageDuration _storage_duration,
+			AccessSpecifier _access_specifier
+		) :
+			Base(_name),
+			type(_type),
+			offset(_offset),
+			cvr_qualifier(_cvr_qualifier),
+			storage_class_specifier(_storage_class_specifier),
+			thread_storage_class_specifier(_thread_storage_class_specifier),
+			storage_duration(_storage_duration),
+			access_specifier(_access_specifier)
+		{}
 
-		bool IsProtected() const noexcept
-		{
-			return access_specifier == AccessSpecifier::kProtected;
-		}
-
-		bool IsPrivate() const noexcept
-		{
-			return access_specifier == AccessSpecifier::kPrivate;
-		}
-
-		bool IsStatic() const noexcept
-		{
-			return storage_class_specifier == StorageClassSpecifier::kStatic;
-		}
+		Type const* GetType() const noexcept { return type; }
+		AccessSpecifier GetAccessSpecifier() const noexcept { return access_specifier; }
+		CVRQualifier GetCVRQualifier() const noexcept { return cvr_qualifier; }
+		StorageClassSpecifier GetStorageClassSpecifier() const noexcept { return storage_class_specifier; }
+		ThreadStorageClassSpecifier GetTSCSpecifier() const noexcept { return thread_storage_class_specifier; }
+		StorageDuration GetStorageDuration() const noexcept { return storage_duration; }
+		bool IsPublic() const noexcept { return access_specifier == AccessSpecifier::kPublic; }
+		bool IsProtected() const noexcept { return access_specifier == AccessSpecifier::kProtected; }
+		bool IsPrivate() const noexcept { return access_specifier == AccessSpecifier::kPrivate; }
+		bool IsStatic() const noexcept { return storage_class_specifier == StorageClassSpecifier::kStatic; }
+		bool IsConst() const noexcept { return (cvr_qualifier & CVRQualifier::kConst) != CVRQualifier::kNone; }
+		bool IsVolatile() const noexcept { return (cvr_qualifier & CVRQualifier::kVolatile) != CVRQualifier::kNone; }
+		bool IsThreadLocal() const noexcept { return thread_storage_class_specifier != ThreadStorageClassSpecifier::kUnSpecified; }
 
 		template<typename T>
 		T GetValue(Pointer ptr) const noexcept
 		{
 			static_assert(std::is_trivially_copyable<T>::value);
 			T value;
-			MEMCPY(&value, (BytePointer)ptr + offset, sizeof(T));
+			REFL_MEMCPY(&value, (BytePointer)ptr + offset, sizeof(T));
 			return value;
 		}
 
@@ -255,7 +483,7 @@ namespace Reflection
 		void SetValue(Pointer ptr, T const& value) const noexcept
 		{
 			static_assert(std::is_trivially_copyable<T>::value);
-			MEMCPY((BytePointer)ptr + offset, &value, sizeof(T));
+			REFL_MEMCPY((BytePointer)ptr + offset, &value, sizeof(T));
 		}
 
 		template<typename T>
@@ -269,45 +497,54 @@ namespace Reflection
 		{
 			return static_cast<T*>((BytePointer)ptr + offset);
 		}
+
+		void Print(std::ostream& os, int indent) const;
 	};
 
-	struct Method : public Base
+	class Method : public Base
 	{
+	private:
 		Type const* return_type;
 		Parameter const* parameters;
 		Size parameters_length;
 		AccessSpecifier access_specifier;
 		Linkage linkage;
 
-		Type const* GetReturnType() const noexcept
-		{
-			return return_type;
-		}
+	public:
+		constexpr Method() :
+			Base(kDefaultName),
+			return_type(nullptr),
+			parameters(nullptr),
+			parameters_length(0),
+			access_specifier(AccessSpecifier::kNone),
+			linkage(Linkage::kNoLinkage)
+		{}
 
-		Parameter const* GetParameter(Offset index) const noexcept
-		{
-			return &parameters[index];
-		}
+		constexpr Method(
+			char const* _name,
+			Type const* _return_type,
+			Parameter const* _parameters,
+			Size _parameters_length,
+			AccessSpecifier _access_specifier,
+			Linkage _linkage
+		) :
+			Base(_name),
+			return_type(_return_type),
+			parameters(_parameters),
+			parameters_length(_parameters_length),
+			access_specifier(_access_specifier),
+			linkage(_linkage)
+		{}
 
-		Size GetParameterLength() const noexcept
-		{
-			return parameters_length;
-		}
-
-		bool IsPublic() const noexcept
-		{
-			return access_specifier == AccessSpecifier::kPublic;
-		}
-
-		bool IsProtected() const noexcept
-		{
-			return access_specifier == AccessSpecifier::kProtected;
-		}
-
-		bool IsPrivate() const noexcept
-		{
-			return access_specifier == AccessSpecifier::kPrivate;
-		}
+		Linkage GetLinkage() const noexcept { return linkage; }
+		AccessSpecifier GetAccessSpecifier() const noexcept { return access_specifier; }
+		bool IsPublic() const noexcept { return access_specifier == AccessSpecifier::kPublic; }
+		bool IsProtected() const noexcept { return access_specifier == AccessSpecifier::kProtected; }
+		bool IsPrivate() const noexcept { return access_specifier == AccessSpecifier::kPrivate; }
+		Type const* GetReturnType() const noexcept { return return_type; }
+		Parameter const* GetParameter(Offset index) const noexcept { return &parameters[index]; }
+		Size GetParameterLength() const noexcept { return parameters_length; }
+		void Print(std::ostream& os, int indent) const;
 	};
 
 	template<typename T, Size FieldsNum, Size MethodsNum>
@@ -322,6 +559,7 @@ namespace Reflection
 
 	struct Type : public Base
 	{
+	private:
 		Size size;
 		TypeSpecifierType type_specifier_type;
 		RefDeclarator ref_declarator;
@@ -334,122 +572,141 @@ namespace Reflection
 		bool is_pointer;
 		Type const* raw_type;
 
-		Type(char const* _name, size_t _size, TypeSpecifierType _type_specifier_type) : 
-			Type(_name, _size, _type_specifier_type, RefDeclarator::kNone, nullptr, 0, nullptr, 0, false, 0, false, nullptr)
+	public:
+		constexpr Type() :
+			Base(kDefaultName),
+			size(0),
+			type_specifier_type(TypeSpecifierType::kBuiltin),
+			ref_declarator(RefDeclarator::kNone),
+			fields(nullptr),
+			fields_length(0),
+			methods(nullptr),
+			methods_length(0),
+			is_array(false),
+			array_length(0),
+			is_pointer(false),
+			raw_type(nullptr)
 		{}
 
-		Type(char const* _name, size_t _size, TypeSpecifierType _type_specifier_type, RefDeclarator _ref_declarator) :
-			Type(_name, _size, _type_specifier_type, _ref_declarator, nullptr, 0, nullptr, 0, false, 0, false, nullptr)
-		{}
-
-		Type(char const* _name,
-			 size_t _size, 
-			 TypeSpecifierType _type_specifier_type,
-			 RefDeclarator _ref_declarator, 
-			 Field* _fields, Size _fields_length,
-			 Method* _methods, Size _methods_length) :
-			Type(_name, 
-				 _size, 
-				 _type_specifier_type, 
-				 _ref_declarator, 
-				 _fields, _fields_length, 
-				 _methods, _methods_length, 
-				 false, 0, false, nullptr)
-		{}
-
-		Type(char const* _name,
-			 size_t _size,
-			 TypeSpecifierType _type_specifier_type,
-			 RefDeclarator _ref_declarator,
-			 bool _is_array, Size _array_length, Type const* _raw_type) :
-			Type(_name,
-				 _size,
-				 _type_specifier_type,
-				 _ref_declarator,
-				 nullptr, 0, nullptr, 0,
-				 _is_array, _array_length, false, _raw_type)
-		{}
-
-		Type(char const* _name,
-			 size_t _size,
-			 TypeSpecifierType _type_specifier_type,
-			 RefDeclarator _ref_declarator,
-			 bool _is_pointer, Type const* _raw_type) :
-			Type(_name,
-				 _size,
-				 _type_specifier_type,
-				 _ref_declarator,
-				 nullptr, 0, nullptr, 0,
-				 false, 0, _is_pointer, _raw_type)
-		{}
-
-		Type(char const* _name,
-			 size_t _size,
-			 TypeSpecifierType _type_specifier_type,
-			 RefDeclarator _ref_declarator, Type const* _raw_type) :
-			Type(_name,
-				 _size,
-				 _type_specifier_type,
-				 _ref_declarator,
-				 nullptr, 0, nullptr, 0,
-				 false, 0, false, _raw_type)
-		{}
-
-		Type(char const* _name,
-			 size_t _size, 
-			 TypeSpecifierType _type_specifier_type, 
-			 RefDeclarator _ref_declarator, 
-			 Field* _fields, Size _fields_length, 
-			 Method* _methods, Size _methods_length, 
-			 bool _is_array, Size _array_length, bool _is_pointer, Type const* _raw_type) :
+		// array type ctor
+		constexpr Type(
+			char const* _name,
+			size_t _size,
+			TypeSpecifierType _type_specifier_type,
+			bool _is_array,
+			Size _array_length,
+			Type const* _raw_type
+		) :
 			Base(_name),
 			size(_size),
 			type_specifier_type(_type_specifier_type),
-			ref_declarator(_ref_declarator),
-			fields(_fields),
-			fields_length(_fields_length),
-			methods(_methods),
-			methods_length(_methods_length),
+			ref_declarator(RefDeclarator::kNone),
+			fields(nullptr),
+			fields_length(0),
+			methods(nullptr),
+			methods_length(0),
 			is_array(_is_array),
 			array_length(_array_length),
+			is_pointer(false),
+			raw_type(_raw_type)
+		{}
+
+		// pointer type ctor
+		constexpr Type(
+			char const* _name,
+			size_t _size,
+			TypeSpecifierType _type_specifier_type,
+			bool _is_pointer,
+			Type const* _raw_type
+		) :
+			Base(_name),
+			size(_size),
+			type_specifier_type(_type_specifier_type),
+			ref_declarator(RefDeclarator::kNone),
+			fields(nullptr),
+			fields_length(0),
+			methods(nullptr),
+			methods_length(0),
+			is_array(false),
+			array_length(0),
 			is_pointer(_is_pointer),
 			raw_type(_raw_type)
 		{}
 
-		Type const* GetRawType() const noexcept
-		{
-			return raw_type;
-		}
+		// reference type ctor
+		constexpr Type(
+			char const* _name,
+			size_t _size,
+			TypeSpecifierType _type_specifier_type,
+			RefDeclarator _ref_declarator,
+			Type const* _raw_type
+		) :
+			Base(_name),
+			size(_size),
+			type_specifier_type(_type_specifier_type),
+			ref_declarator(_ref_declarator),
+			fields(nullptr),
+			fields_length(0),
+			methods(nullptr),
+			methods_length(0),
+			is_array(false),
+			array_length(0),
+			is_pointer(false),
+			raw_type(_raw_type)
+		{}
 
-		Field* const GetField(Offset index) const noexcept
-		{
-			return &fields[index];
-		}
+		// builtin type ctor
+		constexpr Type(
+			char const* _name,
+			size_t _size,
+			TypeSpecifierType _type_specifier_type
+		) :
+			Base(_name),
+			size(_size),
+			type_specifier_type(_type_specifier_type),
+			ref_declarator(RefDeclarator::kNone),
+			fields(nullptr),
+			fields_length(0),
+			methods(nullptr),
+			methods_length(0),
+			is_array(false),
+			array_length(0),
+			is_pointer(false),
+			raw_type(nullptr)
+		{}
 
-		Size GetFieldsLength() const noexcept
-		{
-			return fields_length;
-		}
+		// user type ctor
+		constexpr Type(
+			char const* _name,
+			size_t _size,
+			TypeSpecifierType _type_specifier_type,
+			Field* _fields,
+			Size _fields_length,
+			Method* _methods,
+			Size _methods_length
+		) :
+			Base(_name),
+			size(_size),
+			type_specifier_type(_type_specifier_type),
+			ref_declarator(RefDeclarator::kNone),
+			fields(_fields),
+			fields_length(_fields_length),
+			methods(_methods),
+			methods_length(_methods_length),
+			is_array(false),
+			array_length(0),
+			is_pointer(false),
+			raw_type(nullptr)
+		{}
 
-		Method* const GetMethod(Offset index) const noexcept
-		{
-			return &methods[index];
-		}
-
-		Size GetMethodsLength() const noexcept
-		{
-			return methods_length;
-		}
-
-		TypeSpecifierType GetTypeSpecifierType() const
-		{
-			return type_specifier_type;
-		}
-
-		RefDeclarator GetRefDeclarator() const
-		{
-			return ref_declarator;
-		}
+		Type const* GetRawType() const noexcept { return raw_type; }
+		Field* const GetField(Offset index) const noexcept { return &fields[index]; }
+		Size GetFieldsLength() const noexcept { return fields_length; }
+		Method* const GetMethod(Offset index) const noexcept { return &methods[index]; }
+		Size GetMethodsLength() const noexcept { return methods_length; }
+		TypeSpecifierType GetTypeSpecifierType() const { return type_specifier_type; }
+		RefDeclarator GetRefDeclarator() const { return ref_declarator; }
+		void Print(std::ostream& os, int indent) const;
 	};
 
 	template<typename T>
@@ -459,10 +716,7 @@ namespace Reflection
 	Type const* GetTypeImpl(Tag<T>) noexcept;
 
 	template<typename T>
-	Type const* GetType() noexcept
-	{
-		return GetTypeImpl(Tag<T>());
-	}
+	Type const* GetType() noexcept { return GetTypeImpl(Tag<T>()); }
 
 #define DECLARE_TYPE(T) \
 	template<> \
@@ -470,12 +724,12 @@ namespace Reflection
 	{ \
 		if (std::is_pointer<T>::value) \
 		{ \
-			static Type type(#T, sizeof(T), TypeSpecifierType::kBuiltin, RefDeclarator::kNone, true, GetType<std::remove_pointer<T>::type>()); \
+			static Type type(#T, sizeof(T), TypeSpecifierType::kBuiltin, true, GetType<std::remove_pointer<T>::type>()); \
 			return &type; \
 		} \
 		else if (std::is_array<T>::value) \
 		{ \
-			static Type type(#T, sizeof(T), TypeSpecifierType::kBuiltin, RefDeclarator::kNone, true, std::extent<T>::value, GetType<std::remove_extent<T>::type>()); \
+			static Type type(#T, sizeof(T), TypeSpecifierType::kBuiltin, true, std::extent<T>::value, GetType<std::remove_extent<T>::type>()); \
 			return &type; \
 		} \
 		else if(std::is_reference<T>::value) \
@@ -498,6 +752,7 @@ namespace Reflection
 		return &typeCache; \
 	}
 
+	// builtin types
 	DECLARE_TYPE(bool);
 	DECLARE_TYPE(char);
 	DECLARE_TYPE(unsigned char);
@@ -513,4 +768,122 @@ namespace Reflection
 	DECLARE_TYPE(double);
 	DECLARE_TYPE(long double);
 	DECLARE_TYPE_WITH_SIZE(void, 0);
+
+	// print helpers
+	static inline void PrintIndent(std::ostream& os, int indent)
+	{
+		for (int i = 0; i < indent; ++i)
+		{
+			os << " ";
+		}
+	}
+
+	void Base::Print(std::ostream& os, int indent) const
+	{
+		PrintIndent(os, indent);
+		os << "name: " << name << "\n";
+	}
+
+	void Parameter::Print(std::ostream& os, int indent) const
+	{
+		Base::Print(os, indent);
+		PrintIndent(os, indent);
+		os << "type: " << type->GetName() << "\n";
+		PrintIndent(os, indent);
+		os << "cvr qualifier: " << cvr_qualifier << "\n";
+		PrintIndent(os, indent);
+		os << "ref declarator: " << ref_declarator << "\n";
+	}
+
+	void Field::Print(std::ostream& os, int indent) const
+	{
+		Base::Print(os, indent);
+		PrintIndent(os, indent);
+		os << "type: " << type->GetName() << "\n";
+		PrintIndent(os, indent);
+		os << "offset: " << type->GetName() << "\n";
+		PrintIndent(os, indent);
+		os << "cvr qualifier: " << cvr_qualifier << "\n";
+		PrintIndent(os, indent);
+		os << "storage class specifier: " << storage_class_specifier << "\n";
+		PrintIndent(os, indent);
+		os << "thread storage class specifier: " << thread_storage_class_specifier << "\n";
+		PrintIndent(os, indent);
+		os << "storage duration: " << storage_duration << "\n";
+		PrintIndent(os, indent);
+		os << "access specifier: " << access_specifier << "\n";
+	}
+
+	void Method::Print(std::ostream& os, int indent) const
+	{
+		PrintIndent(os, indent);
+		os << "method name: " << name << "\n";
+		PrintIndent(os, indent);
+		os << "return type name: " << return_type->GetName() << "\n";
+		PrintIndent(os, indent);
+		os << "access specifier: " << access_specifier << "\n";
+		os << "linkage: " << linkage << "\n";
+		PrintIndent(os, indent);
+		os << "parameters length: " << parameters_length << "\n";
+		PrintIndent(os, indent);
+		os << "parameters: " << "\n";
+		for (int i = 0; i < parameters_length; ++i)
+		{
+			auto param = parameters[i];
+			PrintIndent(os, indent + 2);
+			os << "parameters[" << i << "]:\n";
+			param.Print(os, indent + 2);
+		}
+	}
+
+	void Type::Print(std::ostream& os, int indent) const
+	{
+		Base::Print(os, indent);
+		PrintIndent(os, indent);
+		os << "size: " << size << "\n";
+		PrintIndent(os, indent);
+		os << "type specifier type: " << type_specifier_type << "\n";
+		PrintIndent(os, indent);
+		os << "ref declarator: " << ref_declarator << "\n";
+
+		if (raw_type != nullptr)
+		{
+			PrintIndent(os, indent);
+			os << "is array: " << is_array << ", array length: " << array_length << ", element type: " << raw_type->GetName() << "\n";
+			PrintIndent(os, indent);
+			os << "is pointer: " << is_pointer << ", pointee type: " << raw_type->GetName() << "\n";
+		}
+
+		PrintIndent(os, indent);
+		os << "fields length:  " << fields_length << "\n";
+
+		if (fields_length > 0)
+		{
+			PrintIndent(os, indent);
+			os << "fields: " << "\n";
+			for (int i = 0; i < fields_length; ++i)
+			{
+				auto field = fields[i];
+				PrintIndent(os, indent + 2);
+				os << "fields[" << i << "]:\n";
+				field.Print(os, indent + 2);
+			}
+		}
+
+		PrintIndent(os, indent);
+		os << "methods length:  " << methods_length << "\n";
+
+		if (methods_length > 0)
+		{
+			PrintIndent(os, indent);
+			os << "methods: " << "\n";
+			for (int i = 0; i < methods_length; ++i)
+			{
+				auto method = methods[i];
+				PrintIndent(os, indent + 2);
+				os << "methods[" << i << "]:\n";
+				method.Print(os, indent + 2);
+			}
+		}
+	}
 }

@@ -37,63 +37,24 @@ public:
 #include "main_gen_refl.h"
 #endif
 
-template<typename T>
-void PrintType()
-{
-	auto type = GetType<T>();
-	std::cout << type->name << " size: " << type->size << " RefDeclarator: " << std::to_string((Byte)type->GetRefDeclarator()) << " is_array: " << type->is_array << " array_lenght: " << type->array_length << " is_pointer: " << type->is_pointer << " raw_type: " << (type->GetRawType() != nullptr ? type->GetRawType()->name : "null") << std::endl;
-    
-	if (type->GetFieldsLength() > 0)
-	{
-		std::cout << " Fields:" << std::endl;
-	}
-
-	for(int i = 0; i < type->GetFieldsLength(); ++i)
-	{
-		auto field = type->GetField(i);
-		auto fieldType = field->GetType();
-		if (field->GetType()->is_array)
-		{
-			std::cout << "  " << fieldType->name << " " << field->name << "[" << field->GetType()->array_length << "]" << "  offset: " << field->offset << std::endl;
-		}
-		else
-		{
-			std::cout << "  " << fieldType->name << " " << field->name << "  offset: " << field->offset << std::endl;
-		}
-	}
-
-	if (type->GetMethodsLength() > 0)
-	{
-		std::cout << " Methods:" << std::endl;
-	}
-
-	for (int i = 0; i < type->GetMethodsLength(); ++i)
-	{
-		auto method = type->GetMethod(i);
-		std::cout << "  " << method->GetReturnType()->name << " " << method->name << "(";
-		for (int j = 0; j < method->GetParameterLength(); ++j)
-		{
-			auto parameter = method->GetParameter(j);
-			std::cout << parameter->GetType()->name << " " << parameter->name;
-			if (j < method->GetParameterLength() - 1)
-			{
-				std::cout << ", ";
-			}
-		}
-		std::cout << ")" << std::endl;
-	}
-}
-
 #include <vector>
 
 int main()
 {
-	PrintType<Bar>();
-    PrintType<Foo>();
-	PrintType<Bar[10]>();
-    PrintType<int*>();
-    PrintType<int**>();
-    PrintType<int&>();
-    PrintType<int&&>();
+    auto& os = std::cout;
+	GetType<Bar>()->Print(os, 0);
+    os << "\n";
+    GetType<Foo>()->Print(os, 0);
+    os << "\n";
+    GetType<Bar[10]>()->Print(os, 0);
+    os << "\n";
+    GetType<int*>()->Print(os, 0);
+    os << "\n";
+    GetType<int**>()->Print(os, 0);
+    os << "\n";
+    GetType<int&>()->Print(os, 0);
+    os << "\n";
+    GetType<int&&>()->Print(os, 0);
+    os << "\n";
 	return 0;
 }

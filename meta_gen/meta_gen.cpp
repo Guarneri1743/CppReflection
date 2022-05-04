@@ -38,8 +38,7 @@ static std::string GetQualTypeQualifiedName(QualType const &qualType) {
     return (arrayType->getElementType()
                 ->getAsTagDecl()
                 ->getQualifiedNameAsString() +
-            "[" + S +
-            "]")
+            "[" + S + "]")
         .str();
   } else if (type->isVoidType()) {
     return "void";
@@ -319,52 +318,33 @@ static void PrintField(raw_ostream &os, int indent, SmallString<64> &type,
      << "field_" << index << "_Type"
      << " = *GetType<" << GetQualTypeQualifiedName(decl->getType()) << ">();\n";
 
-  // typeStorage.fields[0].name = "fieldName";
   PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].name = \"" << decl->getQualifiedNameAsString()
-     << "\";\n";
-
-  // typeStorage.fields[0].offset = offsetof(Type, fieldName);
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].offset = offsetof(" << type << ", "
-     << decl->getQualifiedNameAsString() << ");\n";
-
-  // typeStorage.fields[0].type = &field_0_Type;
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].type = &"
-     << "field_" << index << "_Type"
-     << ";\n";
-
-  // typeStorage.fields[0].cvr_qualifier = CVRQualifier::kConst;
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].cvr_qualifier = ";
+  // typeStorage.fields[0] = Reflection::Field(
+  os << "typeStorage.fields[" << index << "] = Reflection::Field(";
+  // name
+  os << "\"" << decl->getQualifiedNameAsString() << "\"";
+  os << ", ";
+  // type
+  os << "&field_" << index << "_Type";
+  os << ", ";
+  // offset
+  os << "offsetof(" << type << ", " << decl->getQualifiedNameAsString() << ")";
+  os << ", ";
+  // CVRQualifier
   PrintCVRQualifier(os, decl);
-  os << ";\n";
-
-  // storage class specifier
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index
-     << "].storage_class_specifier = StorageClassSpecifier::kNone"
-     << ";\n";
-
-  // thread storage class specifier
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index
-     << "].thread_storage_class_specifier = "
-        "ThreadStorageClassSpecifier::kUnSpecified"
-     << ";\n";
-
-  // storage duration
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index
-     << "].storage_duration = StorageDuration::kNone"
-     << ";\n";
-
-  // access specifier
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].access_specifier = ";
+  os << ", ";
+  // StorageClassSpecifier
+  os << "StorageClassSpecifier::kNone";
+  os << ", ";
+  // ThreadStorageClassSpecifier
+  os << "ThreadStorageClassSpecifier::kUnSpecified";
+  os << ", ";
+  // StorageDuration
+  os << "StorageDuration::kNone";
+  os << ", ";
+  // AccessSpecifier
   PrintAccessSpecifier(os, decl);
-  os << ";\n\n";
+  os << ");\n";
 }
 
 static void PrintField(raw_ostream &os, int indent, SmallString<64> &type,
@@ -375,54 +355,83 @@ static void PrintField(raw_ostream &os, int indent, SmallString<64> &type,
      << "field_" << index << "_Type"
      << " = *GetType<" << GetQualTypeQualifiedName(decl->getType()) << ">();\n";
 
-  // typeStorage.fields[0].name = "fieldName";
   PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].name = \""
-     << decl->getQualifiedNameAsString()
-     << "\";\n";
 
-  // typeStorage.fields[0].offset = offsetof(Type, fieldName);
+  // typeStorage.fields[0] = Reflection::Field(
+  os << "typeStorage.fields[" << index << "] = Reflection::Field(";
+
+  // name
+  os << "\"" << decl->getQualifiedNameAsString() << "\"";
+  os << ", ";
+
+  // type
+  os << "&field_" << index << "_Type";
+  os << ", ";
+
+  // offset
   if (!decl->isStaticDataMember()) {
-    PrintIndent(os, indent);
-    os << "typeStorage.fields[" << index << "].offset = offsetof(" << type
-       << ", " << decl->getQualifiedNameAsString() << ");\n";
+    os << "offsetof(" << type << ", " << decl->getQualifiedNameAsString()
+       << ")";
+  } else {
+    os << "0";
   }
+  os << ", ";
 
-  // typeStorage.fields[0].type = &field_0_Type;
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].type = &"
-     << "field_" << index << "_Type"
-     << ";\n";
-
-  // typeStorage.fields[0].cvr_qualifier = CVRQualifier::kConst;
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].cvr_qualifier = ";
+  // CVRQualifier
   PrintCVRQualifier(os, decl);
-  os << ";\n";
+  os << ", ";
 
-  // storage class specifier
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].storage_class_specifier = ";
+  // StorageClassSpecifier
   PrintStorageClassSpecifier(os, decl);
-  os << ";\n";
+  os << ", ";
 
-  // thread storage class specifier
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].thread_storage_class_specifier = ";
+  // ThreadStorageClassSpecifier
   PrintThreadStorageClassSpecifier(os, decl);
-  os << ";\n";
+  os << ", ";
 
-  // storage duration
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].storage_duration = ";
+  // StorageDuration
   PrintStorageDuration(os, decl);
-  os << ";\n";
 
-  // access specifier
-  PrintIndent(os, indent);
-  os << "typeStorage.fields[" << index << "].access_specifier = ";
+  os << ", ";
+  // AccessSpecifier
   PrintAccessSpecifier(os, decl);
-  os << ";\n\n";
+
+  // );
+  os << ");\n";
+}
+
+static void PrintParameter(raw_ostream &os, int indent, SmallString<64> &type,
+                           FunctionDecl const *decl, int index,
+                           clang::ParmVarDecl const *param,
+                           unsigned int paramIndex) {
+  // static Type param_0_Type = *GetType<int>();
+  PrintIndent(os, indent);
+  os << "static Type "
+     << "method_" << index << "_param_" << paramIndex << "_type = *GetType <"
+     << GetQualTypeQualifiedName(param->getType()) << ">();\n";
+
+  PrintIndent(os, indent);
+  // method_0_parameters[0] = Reflection::Parameter(;
+  os << "method_" << index << "_parameters[" << paramIndex
+     << "] = Reflection::Parameter(";
+
+  // name
+  os << "\"" << param->getQualifiedNameAsString() << "\"";
+  os << ", ";
+
+  // type
+  os << "&method_" << index << "_param_" << paramIndex << "_type";
+  os << ", ";
+
+  // CVRQualifier
+  PrintCVRQualifier(os, param);
+  os << ", ";
+
+  // RefDeclarator
+  PrintRefDeclarator(os, &(*param->getType()));
+
+  // );
+  os << ");\n";
 }
 
 static void PrintMethod(raw_ostream &os, int indent, SmallString<64> &type,
@@ -434,82 +443,51 @@ static void PrintMethod(raw_ostream &os, int indent, SmallString<64> &type,
   os << "static Type method_" << index << "_ret_type = *GetType<"
      << GetQualTypeQualifiedName(decl->getReturnType()) << ">();\n";
 
-  // typeStorage.methods[0].name = "Add";
-  PrintIndent(os, indent);
-  os << "typeStorage.methods[" << index << "].name = \"" << methodName
-     << "\";\n";
-
-  // typeStorage.methods[0].linkage = Linkage::VisibleNoLinkage;
-  PrintIndent(os, indent);
-  os << "typeStorage.methods[" << index << "].linkage = ";
-  PrintLinkage(os, decl);
-  os << ";\n";
-
-  // typeStorage.methods[0].return_type = &method_0_ret_type;
-  PrintIndent(os, indent);
-  os << "typeStorage.methods[" << index << "].return_type = &method_" << index
-     << "_ret_type;\n";
-
-  // static Parameter method_0_parameters[N];
+  // parameters
   if (decl->getNumParams() > 0) {
     PrintIndent(os, indent);
     os << "static Parameter "
        << "method_" << index << "_parameters[" << decl->getNumParams()
        << "];\n";
+
+    for (unsigned int paramIndex = 0; paramIndex < decl->getNumParams(); ++paramIndex) {
+      clang::ParmVarDecl const *param = decl->getParamDecl(paramIndex);
+      PrintParameter(os, indent, type, decl, index, param, paramIndex);
+    }
   }
 
-  for (int param_index = 0; param_index < decl->getNumParams(); ++param_index) {
-    clang::ParmVarDecl const *param = decl->getParamDecl(param_index);
-    // static Type param_0_Type = *GetType<int>();
-    PrintIndent(os, indent);
-    os << "static Type "
-       << "method_" << index << "_param_" << param_index << "_type = *GetType <"
-       << GetQualTypeQualifiedName(param->getType()) << ">();\n";
-
-    // method_0_parameters[0].name = "a";
-    PrintIndent(os, indent);
-    os << "method_" << index << "_parameters[" << param_index << "].name = \""
-       << param->getQualifiedNameAsString() << "\";\n";
-
-    // method_0_parameters[0].type = &param_0_Type;
-    PrintIndent(os, indent);
-    os << "method_" << index << "_parameters[" << param_index << "].type = &"
-       << "method_" << index << "_param_" << param_index << "_type;\n";
-
-    // method_0_parameters[0].cvr_qualifier = CVRQualifier::kConst;
-    PrintIndent(os, indent);
-    os << "method_" << index << "_parameters[" << param_index
-       << "].cvr_qualifier = ";
-    PrintCVRQualifier(os, param);
-    os << ";\n";
-
-    // method_0_parameters[0].ref_declarator = RefDeclarator::kLValueReference;
-    PrintIndent(os, indent);
-    os << "method_" << index << "_parameters[" << param_index
-       << "].ref_declarator = ";
-    PrintRefDeclarator(os, &(*param->getType()));
-    os << ";\n";
-  }
-
-  // typeStorage.methods[0].parameters = &method_0_parameters[0];
+  // typeStorage.methods[index] = Reflection::Method(
   PrintIndent(os, indent);
+  os << "typeStorage.methods[" << index << "] = Reflection::Method(";
+
+  // name
+  os << "\"" << methodName << "\"";
+  os << ", ";
+
+  // return type
+  os << "&method_" << index << "_ret_type";
+  os << ", ";
+
+  // parameters
   if (decl->getNumParams() > 0) {
-    os << "typeStorage.methods[" << index << "].parameters = &"
-       << "method_" << index << "_parameters[0];\n";
+    os << "&method_" << index << "_parameters[0]";
   } else {
-    os << "typeStorage.methods[" << index << "].parameters = nullptr;\n";
+    os << "nullptr";
   }
+  os << ", ";
 
-  // typeStorage.methods[0].parameters_length = 2;
-  PrintIndent(os, indent);
-  os << "typeStorage.methods[" << index
-     << "].parameters_length = " << decl->getNumParams() << ";\n";
+  os << decl->getNumParams();
+  os << ", ";
 
-  // typeStorage.methods[0].access_specifier = AccessSpecifier::kPublic;
-  PrintIndent(os, indent);
-  os << "typeStorage.methods[" << index << "].access_specifier = ";
+  // AccessSpecifier
   PrintAccessSpecifier(os, decl);
-  os << ";\n\n";
+  os << ", ";
+
+  // Linkage
+  PrintLinkage(os, decl);
+
+  // );
+  os << ");\n";
 }
 
 static void PrintType(raw_ostream &os, int indent,
@@ -548,18 +526,15 @@ static void PrintType(raw_ostream &os, int indent,
   // static Type type("int", sizeof(int),
   PrintIndent(os, indent);
   os << "static Type type(\"" << type << "\", sizeof(" << type << "), ";
-  // TypeSpecifierType::kClass,
+  // TypeSpecifierType,
   PrintTypeSpecifierType(os, decl->getTypeForDecl());
-  os << ", ";
-  // RefDeclarator::kNone, typeStorage.fields, typeStorage.kFieldsNum,
-  // typeStorage.methods, typeStorage.kMethodsNum);
-  PrintRefDeclarator(os, decl->getTypeForDecl());
   os << ", typeStorage.fields, typeStorage.kFieldsNum, typeStorage.methods, "
         "typeStorage.kMethodsNum);\n";
 
   // return &type;
   PrintIndent(os, indent);
   os << "return &type;\n";
+
   // }
   indent--;
   PrintIndent(os, indent);
@@ -597,8 +572,7 @@ public:
 
   void AddField(FieldDecl const *field) {
     std::string name = field->getQualifiedNameAsString();
-    if (name2field.count(name) > 0)
-    {
+    if (name2field.count(name) > 0) {
       return;
     }
     name2field[name] = fields.size();
@@ -640,7 +614,7 @@ public:
     }
 
     for (auto &method : methods) {
-      for (int i = 0; i < method->getNumParams(); ++i) {
+      for (unsigned int i = 0; i < method->getNumParams(); ++i) {
         auto type = method->getParamDecl(i)->getType();
         if (PrintPredefinedType(os, indent, type)) {
           count++;
