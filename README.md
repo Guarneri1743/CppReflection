@@ -61,7 +61,7 @@ The purpose of this project is to help beginners like me to get a better picture
 			auto& os = std::cout;
 			GetType<Bar>()->Print(os, 0);
 			
-			// access metadata
+			// access fields
 			auto type = GetType<Foo>();
 			for (int i = 0; i < type->GetFieldsLength(); ++i)
 			{
@@ -74,6 +74,18 @@ The purpose of this project is to help beginners like me to get a better picture
 				std::cout << "isStatic: " << field->IsStatic() << std::endl;
 				std::cout << std::endl;
 			}
+			
+			// get/set field value
+			Bar bar;
+			bar.num = 13;
+
+			void* obj = &bar;
+
+			auto numField = GetType<Bar>()->GetField("num");
+			auto numVal = numField->GetValue<int>(obj);
+			std::cout << "num: " << numVal << std::endl;
+			numField->SetValue(obj, 7);
+			std::cout << "num: " << bar.num << std::endl;
 			
 			return 0;
 		}
