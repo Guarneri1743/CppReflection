@@ -137,6 +137,9 @@ The purpose of this project is to help beginners like me to get a better picture
 		isPublic: 1
 		isStatic: 1
 
+		num: 13
+		num: 7
+
 # Future works
 
 - Automatic serialization code generation will be added as an example not long afterwards.
