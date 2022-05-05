@@ -43,7 +43,7 @@ int main()
 
     std::cout << std::endl;
 
-    // access metadata
+    // access fields
     auto type = GetType<Foo>();
     for (int i = 0; i < type->GetFieldsLength(); ++i)
     {
@@ -56,6 +56,20 @@ int main()
         std::cout << "isStatic: " << field->IsStatic() << std::endl;
         std::cout << std::endl;
     }
+
+	Bar bar;
+	bar.num = 13;
+
+	// get/set field value
+	void* obj = &bar;
+
+	auto numField = GetType<Bar>()->GetField("num");
+	auto numVal = numField->GetValue<int>(obj);
+	std::cout << "num: " << numVal << std::endl;
+	numField->SetValue(obj, 7);
+	std::cout << "num: " << bar.num << std::endl;
+
+	// TODO: invoke method
 
 	return 0;
 }

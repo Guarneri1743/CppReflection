@@ -21,17 +21,17 @@ namespace Reflection
 {
 	constexpr char kDefaultName[] = "Unknown";
 
-	typedef size_t Offset;
-	typedef size_t Size;
+	typedef std::size_t Offset;
+	typedef std::size_t Size;
 	typedef void* Pointer;
 	typedef uint8_t Byte;
 	typedef Byte* BytePointer;
 
 	template<typename T, Size FieldsNum, Size MethodsNum>
 	struct TypeStorage;
-	struct Field;
-	struct Type;
-	struct Method;
+	class Field;
+	class Type;
+	class Method;
 	template<typename T>
 	struct Tag {};
 
@@ -296,7 +296,7 @@ namespace Reflection
 		}
 		return stream;
 	}
-	
+
 	std::ostream& operator<<(std::ostream& stream, StorageDuration const& value)
 	{
 		switch (value)
@@ -342,7 +342,7 @@ namespace Reflection
 		}
 		return stream;
 	}
-	
+
 	std::ostream& operator<<(std::ostream& stream, Linkage const& value)
 	{
 		switch (value)
@@ -372,6 +372,21 @@ namespace Reflection
 		return stream;
 	}
 
+	int strcmp(char const *p1, char const *p2)
+	{
+		const unsigned char *s1 = (const unsigned char *)p1;
+		const unsigned char *s2 = (const unsigned char *)p2;
+		unsigned char c1, c2;
+		do
+		{
+			c1 = (unsigned char)*s1++;
+			c2 = (unsigned char)*s2++;
+			if (c1 == '\0')
+				return c1 - c2;
+		} while (c1 == c2);
+		return c1 - c2;
+	}
+
 	class Base
 	{
 	protected:
@@ -379,12 +394,12 @@ namespace Reflection
 
 	public:
 		constexpr Base() : name(kDefaultName) {}
-		constexpr Base(const char* _name) : name(_name) {}
+		constexpr Base(char const* _name) : name(_name) {}
 		char const* GetName() const { return this->name; }
 		virtual void Print(std::ostream& os, int indent) const;
 	};
 
-	class Parameter: public Base
+	class Parameter : public Base
 	{
 	private:
 		Type const* type;
@@ -394,15 +409,15 @@ namespace Reflection
 	public:
 		constexpr Parameter() : Base(kDefaultName), type(nullptr), cvr_qualifier(CVRQualifier::kNone), ref_declarator(RefDeclarator::kNone) {}
 		constexpr Parameter(
-			const char* _name, 
+			char const* _name,
 			Type const* _type,
 			CVRQualifier _cvr_qualifier,
 			RefDeclarator _ref_declarator
-		) : 
-			Base(_name), 
-			type(_type), 
-			cvr_qualifier(_cvr_qualifier), 
-			ref_declarator(_ref_declarator) 
+		) :
+			Base(_name),
+			type(_type),
+			cvr_qualifier(_cvr_qualifier),
+			ref_declarator(_ref_declarator)
 		{}
 
 		Type const* GetType() const noexcept { return type; }
@@ -417,7 +432,7 @@ namespace Reflection
 	{
 	private:
 		Type const* type;
-		Offset offset; 
+		Offset offset;
 		CVRQualifier cvr_qualifier;
 		StorageClassSpecifier storage_class_specifier;
 		ThreadStorageClassSpecifier thread_storage_class_specifier;
@@ -437,7 +452,7 @@ namespace Reflection
 		{}
 
 		constexpr Field(
-			const char* _name,
+			char const* _name,
 			Type const* _type,
 			Offset _offset,
 			CVRQualifier _cvr_qualifier,
@@ -471,18 +486,16 @@ namespace Reflection
 		bool IsThreadLocal() const noexcept { return thread_storage_class_specifier != ThreadStorageClassSpecifier::kUnSpecified; }
 
 		template<typename T>
-		T GetValue(Pointer ptr) const noexcept
+		T GetValue(Pointer ptr, typename std::enable_if<std::is_trivially_copyable<T>::value>::type* = 0) const noexcept
 		{
-			static_assert(std::is_trivially_copyable<T>::value);
 			T value;
 			REFL_MEMCPY(&value, (BytePointer)ptr + offset, sizeof(T));
 			return value;
 		}
 
 		template<typename T>
-		void SetValue(Pointer ptr, T const& value) const noexcept
+		void SetValue(Pointer ptr, T const& value, typename std::enable_if<std::is_trivially_copyable<T>::value>::type* = 0) const noexcept
 		{
-			static_assert(std::is_trivially_copyable<T>::value);
 			REFL_MEMCPY((BytePointer)ptr + offset, &value, sizeof(T));
 		}
 
@@ -545,6 +558,15 @@ namespace Reflection
 		Parameter const* GetParameter(Offset index) const noexcept { return &parameters[index]; }
 		Size GetParameterLength() const noexcept { return parameters_length; }
 		void Print(std::ostream& os, int indent) const;
+
+		Parameter const* GetParameter(char const* name) const noexcept {
+			for (int i = 0; i < parameters_length; ++i) {
+				if (strcmp(parameters[i].GetName(), name)) {
+					return &parameters[i];
+				}
+			}
+			return nullptr;
+		}
 	};
 
 	template<typename T, Size FieldsNum, Size MethodsNum>
@@ -591,7 +613,7 @@ namespace Reflection
 		// array type ctor
 		constexpr Type(
 			char const* _name,
-			size_t _size,
+			Size _size,
 			TypeSpecifierType _type_specifier_type,
 			bool _is_array,
 			Size _array_length,
@@ -614,7 +636,7 @@ namespace Reflection
 		// pointer type ctor
 		constexpr Type(
 			char const* _name,
-			size_t _size,
+			Size _size,
 			TypeSpecifierType _type_specifier_type,
 			bool _is_pointer,
 			Type const* _raw_type
@@ -636,7 +658,7 @@ namespace Reflection
 		// reference type ctor
 		constexpr Type(
 			char const* _name,
-			size_t _size,
+			Size _size,
 			TypeSpecifierType _type_specifier_type,
 			RefDeclarator _ref_declarator,
 			Type const* _raw_type
@@ -658,7 +680,7 @@ namespace Reflection
 		// builtin type ctor
 		constexpr Type(
 			char const* _name,
-			size_t _size,
+			Size _size,
 			TypeSpecifierType _type_specifier_type
 		) :
 			Base(_name),
@@ -678,7 +700,7 @@ namespace Reflection
 		// user type ctor
 		constexpr Type(
 			char const* _name,
-			size_t _size,
+			Size _size,
 			TypeSpecifierType _type_specifier_type,
 			Field* _fields,
 			Size _fields_length,
@@ -707,6 +729,30 @@ namespace Reflection
 		TypeSpecifierType GetTypeSpecifierType() const { return type_specifier_type; }
 		RefDeclarator GetRefDeclarator() const { return ref_declarator; }
 		void Print(std::ostream& os, int indent) const;
+
+		Field const* GetField(char const* name) const noexcept
+		{
+			for (int i = 0; i < fields_length; ++i)
+			{
+				if (strcmp(fields[i].GetName(), name)) {
+					return &fields[i];
+				}
+			}
+
+			return nullptr;
+		}
+
+		Method const* GetMethod(char const* name) const noexcept
+		{
+			for (int i = 0; i < methods_length; ++i)
+			{
+				if (strcmp(methods[i].GetName(), name)) {
+					return &methods[i];
+				}
+			}
+
+			return nullptr;
+		}
 	};
 
 	template<typename T>
